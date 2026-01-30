@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
+import 'senderliste.dart';
 
 void main() => runApp(
   const MaterialApp(debugShowCheckedModeBanner: false, home: PioneerRadioApp()),
@@ -16,17 +17,7 @@ class PioneerRadioApp extends StatefulWidget {
 class _PioneerRadioAppState extends State<PioneerRadioApp> {
   // --- KONFIGURATION ---
   final String rendererUrl = 'http://192.168.178.33:8080/AVTransport/ctrl';
-
-  // Deine Senderliste als Map (Name: URL)
-  final Map<String, String> stations = {
-    'WDR 2 Ruhrgebiet':
-        'http://wdr-wdr2-ruhrgebiet.icecastssl.wdr.de/wdr/wdr2/ruhrgebiet/mp3/128/stream.mp3',
-    '1LIVE':
-        'http://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3',
-    'HR3': 'http://hr-hr3-live.cast.addradio.de/hr/hr3/live/mp3/128/stream.mp3',
-    'Antenne Bayern': 'http://stream.antenne.de/antenne/stream/mp3',
-  };
-
+  String _currentStation = "Kein Sender gewählt";
   // --- DIE DLNA LOGIK ---
   Future<void> playStation(String name, String url) async {
     try {
@@ -123,8 +114,9 @@ class _PioneerRadioAppState extends State<PioneerRadioApp> {
       body: ListView.builder(
         itemCount: stations.length,
         itemBuilder: (context, index) {
-          String name = stations.keys.elementAt(index);
-          String url = stations.values.elementAt(index);
+          final station = stations[index];
+          String name = station['name'] ?? 'Unbekannter Sender';
+          String url = station['url'] ?? '';
 
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
@@ -138,7 +130,13 @@ class _PioneerRadioAppState extends State<PioneerRadioApp> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: const Text("Tippen zum Streamen"),
-              onTap: () => playStation(name, url),
+              onTap: () {
+                setState(() {
+                  _currentStation =
+                      name; // 'name' kommt aus deinem ListView.builder
+                });
+                playStation(name, url);
+              },
             ),
           );
         },
@@ -147,6 +145,21 @@ class _PioneerRadioAppState extends State<PioneerRadioApp> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min, // Ganz wichtig!
         children: [
+          // Das neue Status-Feld
+          Container(
+            padding: const EdgeInsets.all(16),
+            width: double.infinity,
+            color: Colors.black, // Schwarzer Hintergrund wie das Weltall
+            child: Text(
+              "AKTUELLER SENDER: $_currentStation",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.yellow, // Star Wars Gelb
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
           // DEINE NEUE ZUSÄTZLICHE BAR
           Container(
             color: const Color.fromARGB(255, 227, 123, 123),

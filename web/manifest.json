@@ -1,6 +1,7 @@
 {
     "name": "pioneer_app",
     "short_name": "pioneer_app",
+    "label": "JEDI PIONEER",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

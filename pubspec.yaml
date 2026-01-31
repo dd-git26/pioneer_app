@@ -29,10 +29,13 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
 
+  # Schriften (Achte darauf, dass 'fonts:' unter 'flutter:' eingerückt ist)
   fonts:
     - family: StarWars
       fonts:
         - asset: assets/Starjout.ttf
-  
 
+  # Assets (Muss bündig mit 'fonts:' sein)
+  assets:
+    - assets/logos/
       

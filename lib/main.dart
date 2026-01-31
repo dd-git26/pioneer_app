@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'senderliste.dart';
+import 'widgets/control_bar.dart';
+import 'widgets/status_display.dart';
 
 void main() => runApp(
   const MaterialApp(debugShowCheckedModeBanner: false, home: PioneerRadioApp()),
@@ -100,128 +102,100 @@ class _PioneerRadioAppState extends State<PioneerRadioApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'jedi pioneer app',
-          style: TextStyle(
-            fontFamily: 'StarWars',
-            fontSize: 36,
-            color: Colors.yellow,
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          decoration: BoxDecoration(
+            // Hier erzeugen wir den Glow-Effekt um den Textbereich
+            boxShadow: [
+              BoxShadow(
+                color: Colors.yellow.withOpacity(0.5),
+                blurRadius: 60,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: const Text(
+            'jedi pioneer',
+            style: TextStyle(
+              fontFamily: 'StarWars',
+              fontSize: 36,
+              color: Color.fromARGB(255, 250, 250, 129),
+              // Zusätzlicher Glow direkt an den Buchstaben:
+              shadows: [
+                Shadow(
+                  color: Color.fromARGB(255, 144, 144, 97),
+                  blurRadius: 15.0,
+                  offset: Offset(0, 0),
+                ),
+              ],
+            ),
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blueGrey,
+        backgroundColor:
+            Colors.blueGrey.shade900, // Passend zur ControlBar unten
       ),
-      body: ListView.builder(
-        itemCount: stations.length,
-        itemBuilder: (context, index) {
-          final station = stations[index];
-          String name = station['name'] ?? 'Unbekannter Sender';
-          String url = station['url'] ?? '';
-
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-            child: ListTile(
-              leading: const Icon(
-                Icons.radio,
-                color: Color.fromARGB(255, 21, 88, 123),
-              ),
-              title: Text(
-                name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text("Tippen zum Streamen"),
-              onTap: () {
-                setState(() {
-                  _currentStation =
-                      name; // 'name' kommt aus deinem ListView.builder
-                });
-                playStation(name, url);
-              },
-            ),
-          );
-        },
-      ),
-
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min, // Ganz wichtig!
+      // HIER LIEGT DIE ÄNDERUNG:
+      body: Column(
         children: [
-          // Das neue Status-Feld
-          Container(
-            padding: const EdgeInsets.all(16),
-            width: double.infinity,
-            color: Colors.black, // Schwarzer Hintergrund wie das Weltall
-            child: Text(
-              "AKTUELLER SENDER: $_currentStation",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.yellow, // Star Wars Gelb
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
-            ),
-          ),
-          // DEINE NEUE ZUSÄTZLICHE BAR
-          Container(
-            color: const Color.fromARGB(255, 227, 123, 123),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => sendControl('04FN'),
-                  child: const Text('XBOX'),
-                ),
-                ElevatedButton(
-                  onPressed: () => sendControl('25FN'),
-                  child: const Text(
-                    'Gaming PC',
-                    style: TextStyle(fontFamily: 'StarWars', fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // 1. Dein Status-Feld oben anzeigen
+          StatusDisplay(currentStation: _currentStation),
 
-          BottomAppBar(
-            color: Colors.blueGrey.shade900,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.volume_down, color: Colors.white),
-                  onPressed: () => sendControl('VD'), // Volume Down
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.volume_off,
-                    color: Color.fromARGB(255, 151, 152, 151),
+          // 2. Die Liste muss in ein Expanded, um den Restplatz zu füllen
+          Expanded(
+            child: ListView.builder(
+              itemCount: stations.length,
+              itemBuilder: (context, index) {
+                final station = stations[index];
+                String name = station['name'] ?? 'Unbekannter Sender';
+                String url = station['url'] ?? '';
+                String? logoPath = station['logo'];
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 8,
                   ),
-                  onPressed: () => sendControl('MZ'), // Mute Toggle
-                ),
-                IconButton(
-                  icon: const Icon(Icons.volume_up, color: Colors.white),
-                  onPressed: () => sendControl('VU'), // Volume Up
-                ),
-                const VerticalDivider(color: Colors.white24),
-                IconButton(
-                  icon: const Icon(
-                    Icons.power_settings_new,
-                    color: Color.fromARGB(255, 117, 194, 2),
+                  child: ListTile(
+                    // HIER nutzen wir die Variable jetzt:
+                    leading: logoPath != null
+                        ? Image.asset(
+                            logoPath,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.contain,
+                          )
+                        : const Icon(
+                            Icons.radio,
+                            size: 40,
+                          ), // Ersatz-Icon, falls kein Logo da ist
+                    title: Text(
+                      name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text("Tippen zum Streamen"),
+                    onTap: () async {
+                      setState(() {
+                        _currentStation = name;
+                      });
+                      playStation(name, url); // 1. Stream starten
+
+                      // 2. Radio leiser stellen (z.B. auf Wert 151)
+                      await Future.delayed(const Duration(milliseconds: 500));
+                      sendControl('060VL');
+                    },
                   ),
-                  onPressed: () => sendControl('PO'), // Power On
-                ),
-                //    const VerticalDivider(color: Colors.white24),
-                IconButton(
-                  icon: const Icon(
-                    Icons.power_settings_new,
-                    color: Color.fromARGB(255, 224, 88, 88),
-                  ),
-                  onPressed: () => sendControl('PF'), // Power Off
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],
+      ),
+
+      bottomNavigationBar: ControlBar(
+        onControlTap: (code) {
+          sendControl(code);
+        },
       ),
     );
   }

@@ -15,8 +15,13 @@ const List<Map<String, String>> stations = [
     'url': 'http://stream01.superfly.fm:8080/live128',
     'genre': 'Soul/Funk',
     'logo': 'assets/logos/superfly.png',
+    'vol': '0.7', // Dieser Sender ist von Haus aus sehr laut
   },
-  {'name': 'Dortmund 91.2', 'url': '', 'logo': 'assets/logos/912.png'},
+  {
+    'name': 'Dortmund 91.2',
+    'url': 'http://radio912-live.cast.addradio.de/radio912/live/mp3/high',
+    'logo': 'assets/logos/912.png',
+  },
   {
     'name': 'N-JOY',
     'url': 'http://icecast.ndr.de/ndr/njoy/live/mp3/128/stream.mp3',
@@ -25,7 +30,7 @@ const List<Map<String, String>> stations = [
   },
   {
     'name': 'Deutschlandfunk NOVA',
-    'url': '	https://st03.sslstream.dlf.de/dlf/03/128/mp3/stream.mp3',
+    'url': 'http://st03.sslstream.dlf.de/dlf/03/128/mp3/stream.mp3',
     'genre': 'Dance',
     'logo': 'assets/logos/nova.png',
   },

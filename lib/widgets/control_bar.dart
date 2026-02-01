@@ -76,6 +76,7 @@ class ControlBar extends StatelessWidget {
                 icon: const Icon(Icons.volume_down, color: Colors.white),
                 onPressed: () => onControlTap('VD'),
               ),
+
               IconButton(
                 icon: const Icon(Icons.volume_up, color: Colors.white),
                 onPressed: () => onControlTap('VU'),
